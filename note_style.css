@@ -1,0 +1,10 @@
+.nb-note {
+  min-width: 100px !important;
+  min-height: 100px !important;
+  background-color: yellow !important;
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate3d(-50%, -50%, 0) !important;
+  resize: both !important;
+}
