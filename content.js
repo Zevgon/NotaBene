@@ -15,33 +15,39 @@
 // });
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  note = $('<div><div class=\'move-bar\'></div><textarea class=\'note-text\'></textarea></div>');
+  note = $('<div><textarea class=\'note-text\'></textarea></div>');
+  moveBar = $('<div class=\'move-bar\'></div>');
+  moveBar.on('mousedown', mouseDown);
+  note.prepend(moveBar);
   note.addClass('nb-note');
   note.css('top', '0');
-  note.css('right', '0');
+  note.css('left', '100%');
+  note.css('transform', 'translateX(-134px)');
   note.css('zIndex', '1000000');
-  note.css('transform', 'translate3d(-50%, -50%, 0) !important');
-  note.on('mousedown', mouseDown);
-  let clientX, clientY;
-  window.addEventListener('mouseup', mouseUp);
-  function mouseDown (e) {
-    initialClientX = e.clientX;
-    initialClientY = e.clientY;
-    window.addEventListener('mousemove', drag);
-  }
-  function mouseUp (e) {
-    window.removeEventListener('mousemove', drag);
-  }
-  function drag (e) {
-    currTop = parseInt(note.css('top'));
-    currRight = parseInt(note.css('right'));
-    diffTop = e.clientY - initialClientY;
-    diffRight = initialClientX - e.clientX;
-    newTop = currTop + diffTop;
-    newRight = currRight + diffRight;
-    note.css('top', diffTop.toString() + 'px');
-    note.css('right', diffRight.toString() + 'px');
-    console.log('hi :D');
-  }
   $('body').prepend(note);
 });
+
+let clientX, clientY;
+window.addEventListener('mouseup', mouseUp);
+function mouseDown (e) {
+  clientXTracker = e.clientX;
+  clientYTracker = e.clientY;
+  window.addEventListener('mousemove', drag);
+}
+
+function mouseUp (e) {
+  window.removeEventListener('mousemove', drag);
+}
+
+function drag (e) {
+  currTop = parseInt(note.css('top'));
+  currLeft = parseInt(note.css('left'));
+  diffTop = e.clientY - clientYTracker;
+  diffLeft = e.clientX - clientXTracker;
+  clientYTracker = e.clientY;
+  clientXTracker = e.clientX;
+  newTop = currTop + diffTop;
+  newLeft = currLeft + diffLeft;
+  moveBar.parent().css('top', newTop.toString() + 'px');
+  moveBar.parent().css('left', newLeft.toString() + 'px');
+}

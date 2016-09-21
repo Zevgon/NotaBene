@@ -1,22 +1,23 @@
 .nb-note {
-  min-width: 100px !important;
-  min-height: 100px !important;
   background-color: yellow !important;
   position: absolute !important;
-  /*top: 50% !important;
-  left: 50% !important;*/
-  /*transform: translate3d(-50%, -50%, 0) !important;*/
   resize: both !important;
-  /*draggable: true !important;*/
-  outline: none;
 }
 
 .note-text {
-  background-color: red;
+  min-height: 80px;
+  height: 100%;
+  background-color: transparent;
+  outline: none;
+  border: none;
 }
 
 .move-bar {
   width: 100%;
   height: 20px;
-  background-color: gray;
+  background-color: #C0C0C0;
+}
+
+.move-bar:hover {
+  cursor: move;
 }
