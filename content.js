@@ -13,22 +13,27 @@
 //   document.body.appendChild(note);
 //
 // });
+chrome.runtime.sendMessage({action: 'loadNotes'}, response => {
+});
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  note = $('<div><textarea class=\'note-text\'></textarea></div>');
-  moveBar = $('<div class=\'move-bar\'></div>');
-  moveBar.on('mousedown', mouseDown);
-  deleteIcon = $('<img src=\'https://cdn0.iconfinder.com/data/icons/basic-ui-elements-plain/385/010_x-512.png\'></img>');
-  deleteIcon.addClass('delete');
-  deleteIcon.on('click', removeNote);
-  moveBar.append(deleteIcon);
-  note.prepend(moveBar);
-  note.addClass('nb-note');
-  note.css('top', '0');
-  note.css('left', '100%');
-  note.css('transform', 'translateX(-136px)');
-  note.css('zIndex', '1000000');
-  $('body').prepend(note);
+  if (request.action == 'createNote') {
+    note = $('<div><textarea class=\'note-text\'></textarea></div>');
+    moveBar = $('<div class=\'move-bar\'></div>');
+    moveBar.on('mousedown', mouseDown);
+    deleteIcon = $('<img src=\'https://cdn0.iconfinder.com/data/icons/basic-ui-elements-plain/385/010_x-512.png\'></img>');
+    deleteIcon.addClass('delete');
+    deleteIcon.on('click', removeNote);
+    moveBar.append(deleteIcon);
+    note.prepend(moveBar);
+    note.addClass('nb-note');
+    note.css('top', '0');
+    note.css('left', '100%');
+    note.css('transform', 'translateX(-136px)');
+    note.css('zIndex', '1000000');
+    $('body').prepend(note);
+    chrome.runtime.sendMessage({'note': note, 'action': 'updateNote'}, () => console.log('sent'));
+  }
 });
 
 let clientX, clientY;
@@ -60,4 +65,8 @@ function removeNote (e) {
   if (window.confirm('Are you sure you want to delete this note?')) {
     $(e.target.parentElement.parentElement)[0].remove();
   }
+}
+
+function getNote () {
+  chrome.storage.sync.get('note', data => console.log(data));
 }

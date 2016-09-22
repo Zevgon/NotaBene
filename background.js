@@ -19,8 +19,50 @@
 //     sendResponse({error: "poreiuasjpf"}); // Send nothing..
 // });
 
+
 chrome.browserAction.onClicked.addListener(() => {
   chrome.tabs.query({active: true, currentWindow: true}, tabs => {
     chrome.tabs.sendMessage(tabs[0].id, {action: 'createNote'});
   });
 });
+
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request.action == 'updateNote') {
+    let currentURL;
+    chrome.tabs.query({active: true}, tabs => {
+      currentURL = tabs[0].url;
+    });
+    saveNote(request.note, currentURL);
+  }
+  if (request.action == 'loadNotes') {
+    chrome.tabs.query({active: true}, tabs => {
+      sendResponse(tabs);
+    });
+  }
+});
+
+function saveNote (note, url) {
+  if (!url) {
+    return;
+  }
+  let currentNotes;
+  chrome.storage.sync.get({notes: 'anyString'}, data => {
+    if (data.notes) {
+      currentNotes = data.notes
+    }
+
+    if (currentNotes && currentNotes[url]) {
+      currentNotes[url].push(note);
+    } else if (currentNotes) {
+      currentNotes[url] = [note];
+    } else {
+      return;
+    }
+
+    chrome.storage.sync.set(
+      {
+        notes: currentNotes
+      }
+    );
+  });
+}

@@ -10,11 +10,14 @@
     }
   ],
   "background": {
-    "scripts": ["background.js"]
+    "scripts": ["background.js"],
+    "run_at": "document_idle"
   },
   "browser_action": {
   },
   "permissions": [
-    "activeTab"
+    "activeTab",
+    "storage",
+    "tabs"
   ]
 }
