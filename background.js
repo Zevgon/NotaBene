@@ -1,25 +1,3 @@
-// chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
-//   let note = document.createElement('h1');
-//   note.innerHTML = 'Testing';
-//   note.className = 'note';
-//   let domInfo = {
-//     total:   document.querySelectorAll('*').length,
-//     inputs:  document.querySelectorAll('input').length,
-//     buttons: document.querySelectorAll('button').length,
-//     newEl: note
-//   }
-//   let link = document.createElement('link');
-//   link.rel = 'stylesheet';
-//   link.type = 'text/css';
-//   link.href = 'note_style.css';
-//   debugger;
-//   if (request.action == "createNote")
-//     sendResponse(note);
-//   else
-//     sendResponse({error: "poreiuasjpf"}); // Send nothing..
-// });
-
-
 chrome.browserAction.onClicked.addListener(() => {
   chrome.tabs.query({active: true, currentWindow: true}, tabs => {
     chrome.tabs.sendMessage(tabs[0].id, {action: 'createNote'});
@@ -27,38 +5,37 @@ chrome.browserAction.onClicked.addListener(() => {
 });
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.action == 'updateNote') {
-    let currentURL;
-    chrome.tabs.query({active: true}, tabs => {
-      currentURL = tabs[0].url;
-    });
-    saveNote(request.note, currentURL);
-  }
-  if (request.action == 'loadNotes') {
-    chrome.tabs.query({active: true}, tabs => {
-      sendResponse(tabs);
-    });
+  switch (request.action) {
+    case 'updateNotes':
+      saveNotes(request.notes, sender.url);
+      break;
+    case 'loadNotes':
+      chrome.tabs.query({active: true, currentWindow: true}, tabs => {
+        chrome.storage.sync.get('notes', data => {
+          sendResponse({notes: data.notes, url: sender.url});
+        });
+      });
+      return true;
+    default:
+      return;
   }
 });
 
-function saveNote (note, url) {
+function saveNotes (notes, url) {
   if (!url) {
     return;
   }
   let currentNotes;
-  chrome.storage.sync.get({notes: 'anyString'}, data => {
-    if (data.notes) {
+  chrome.storage.sync.get('notes', data => {
+    if (data && data.notes) {
       currentNotes = data.notes
     }
-
-    if (currentNotes && currentNotes[url]) {
-      currentNotes[url].push(note);
-    } else if (currentNotes) {
-      currentNotes[url] = [note];
+    if (currentNotes) {
+      currentNotes[url] = notes;
     } else {
-      return;
+      currentNotes = {};
+      currentNotes[url] = notes;
     }
-
     chrome.storage.sync.set(
       {
         notes: currentNotes

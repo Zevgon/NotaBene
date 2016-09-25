@@ -1,29 +1,22 @@
-// chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
-//   let note = document.createElement('textarea');
-//   // note.innerHTML = 'HI!';
-//   // note.style.backgroundColor = 'yellow';
-//   // note.style.height = '100px';
-//   // note.style.width = '100px';
-//   // note.style.position = 'absolute';
-//   // note.style.top = '0';
-//   // note.style.left = '0';
-//   note.className = 'nb-note';
-//   // note.draggable = 'true';
-//   debugger;
-//   document.body.appendChild(note);
-//
-// });
 chrome.runtime.sendMessage({action: 'loadNotes'}, response => {
+  if (response.notes && response.notes[response.url]) {
+    htmls = response.notes[response.url];
+    htmls.forEach(html => {
+      note = $(html[0]);
+      text = html[1];
+      note.find('.note-text').val(text);
+      applyListeners(note);
+      $('body').prepend(note);
+    });
+  }
 });
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action == 'createNote') {
     note = $('<div><textarea class=\'note-text\'></textarea></div>');
     moveBar = $('<div class=\'move-bar\'></div>');
-    moveBar.on('mousedown', mouseDown);
     deleteIcon = $('<img src=\'https://cdn0.iconfinder.com/data/icons/basic-ui-elements-plain/385/010_x-512.png\'></img>');
     deleteIcon.addClass('delete');
-    deleteIcon.on('click', removeNote);
     moveBar.append(deleteIcon);
     note.prepend(moveBar);
     note.addClass('nb-note');
@@ -31,14 +24,18 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     note.css('left', '100%');
     note.css('transform', 'translateX(-136px)');
     note.css('zIndex', '1000000');
+    applyListeners(note);
     $('body').prepend(note);
-    chrome.runtime.sendMessage({'note': note, 'action': 'updateNote'}, () => console.log('sent'));
+    updateNotes();
   }
 });
 
+
 let clientX, clientY;
 window.addEventListener('mouseup', mouseUp);
+
 function mouseDown (e) {
+  e.preventDefault();
   clientXTracker = e.clientX;
   clientYTracker = e.clientY;
   window.addEventListener('mousemove', drag);
@@ -46,9 +43,11 @@ function mouseDown (e) {
 
 function mouseUp (e) {
   window.removeEventListener('mousemove', drag);
+  updateNotes();
 }
 
 function drag (e) {
+  e.preventDefault();
   currTop = parseInt(note.css('top'));
   currLeft = parseInt(note.css('left'));
   diffTop = e.clientY - clientYTracker;
@@ -57,16 +56,32 @@ function drag (e) {
   clientXTracker = e.clientX;
   newTop = currTop + diffTop;
   newLeft = currLeft + diffLeft;
-  moveBar.parent().css('top', newTop.toString() + 'px');
-  moveBar.parent().css('left', newLeft.toString() + 'px');
+  $(e.target).parent().css('top', newTop.toString() + 'px');
+  $(e.target).parent().css('left', newLeft.toString() + 'px');
 }
 
 function removeNote (e) {
   if (window.confirm('Are you sure you want to delete this note?')) {
     $(e.target.parentElement.parentElement)[0].remove();
   }
+  updateNotes();
 }
 
-function getNote () {
-  chrome.storage.sync.get('note', data => console.log(data));
+function updateNotes () {
+  htmls = [];
+  notes = $('.nb-note');
+  clone = notes.clone();
+  clone.each(el => {
+    text = $(clone[el]).find('.note-text').val();
+    html = $('<div>').append(clone[el]).html();
+    subArr = [html, text];
+    htmls.push(subArr);
+  });
+  chrome.runtime.sendMessage({notes: htmls, action: 'updateNotes'});
+}
+
+function applyListeners (note) {
+  note.find('.move-bar').on('mousedown', mouseDown);
+  note.find('.delete').on('click', removeNote);
+  note.find('.note-text').on('change keyup paste', updateNotes);
 }
