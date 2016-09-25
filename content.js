@@ -25,23 +25,26 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     note.css('transform', 'translateX(-136px)');
     note.css('zIndex', '1000000');
     applyListeners(note);
-    $('body').prepend(note);
+    $('body').append(note);
     updateNotes();
   }
 });
 
 
 let clientX, clientY;
+let movingNote;
 window.addEventListener('mouseup', mouseUp);
 
 function mouseDown (e) {
   e.preventDefault();
+  movingNote = $(e.target).parent();
   clientXTracker = e.clientX;
   clientYTracker = e.clientY;
   window.addEventListener('mousemove', drag);
 }
 
 function mouseUp (e) {
+  e.preventDefault();
   window.removeEventListener('mousemove', drag);
   updateNotes();
 }
@@ -56,8 +59,18 @@ function drag (e) {
   clientXTracker = e.clientX;
   newTop = currTop + diffTop;
   newLeft = currLeft + diffLeft;
-  $(e.target).parent().css('top', newTop.toString() + 'px');
-  $(e.target).parent().css('left', newLeft.toString() + 'px');
+  movingNoteWidth = parseInt(movingNote.css('width'));
+  movingNoteRight = parseInt(movingNote.css('right'));
+  movingNoteHeight = parseInt(movingNote.css('height'));
+  bodyWidth = parseInt($('body').css('width'));
+  bodyHeight = parseInt($('body').css('height'));
+  if (newTop > -1 &&
+      newTop < bodyHeight - movingNoteHeight + 40 &&
+      newLeft > movingNoteWidth - 5 &&
+      newLeft < bodyWidth + 2) {
+    movingNote.css('top', newTop.toString() + 'px');
+    movingNote.css('left', newLeft.toString() + 'px');
+  }
 }
 
 function removeNote (e) {
