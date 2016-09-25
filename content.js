@@ -1,7 +1,6 @@
 chrome.runtime.sendMessage({action: 'loadNotes'}, response => {
-  if (response.notes && response.notes[response.url]) {
-    htmls = response.notes[response.url];
-    htmls.forEach(html => {
+  if (response.notes) {
+    response.notes.forEach(html => {
       note = $(html[0]);
       text = html[1];
       note.find('.note-text').val(text);
@@ -51,8 +50,8 @@ function mouseUp (e) {
 
 function drag (e) {
   e.preventDefault();
-  currTop = parseInt(note.css('top'));
-  currLeft = parseInt(note.css('left'));
+  currTop = parseInt(movingNote.css('top'));
+  currLeft = parseInt(movingNote.css('left'));
   diffTop = e.clientY - clientYTracker;
   diffLeft = e.clientX - clientXTracker;
   clientYTracker = e.clientY;
@@ -85,8 +84,8 @@ function updateNotes () {
   notes = $('.nb-note');
   clone = notes.clone();
   clone.each(el => {
-    text = $(clone[el]).find('.note-text').val();
     html = $('<div>').append(clone[el]).html();
+    text = $(clone[el]).find('.note-text').val();
     subArr = [html, text];
     htmls.push(subArr);
   });

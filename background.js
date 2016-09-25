@@ -11,8 +11,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       break;
     case 'loadNotes':
       chrome.tabs.query({active: true, currentWindow: true}, tabs => {
-        chrome.storage.sync.get('notes', data => {
-          sendResponse({notes: data.notes, url: sender.url});
+        chrome.storage.sync.get(sender.url, data => {
+          sendResponse({notes: data[sender.url], url: sender.url});
         });
       });
       return true;
@@ -26,20 +26,9 @@ function saveNotes (notes, url) {
     return;
   }
   let currentNotes;
-  chrome.storage.sync.get('notes', data => {
-    if (data && data.notes) {
-      currentNotes = data.notes
-    }
-    if (currentNotes) {
-      currentNotes[url] = notes;
-    } else {
-      currentNotes = {};
-      currentNotes[url] = notes;
-    }
-    chrome.storage.sync.set(
-      {
-        notes: currentNotes
-      }
-    );
+  chrome.storage.sync.get(url, data => {
+    currentNotes = {};
+    currentNotes[url] = notes;
+    chrome.storage.sync.set(currentNotes);
   });
 }
