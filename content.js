@@ -1,4 +1,5 @@
 chrome.runtime.sendMessage({action: 'loadNotes'}, response => {
+  debugger;
   if (response.notes) {
     response.notes.forEach(html => {
       note = $(html[0]);
